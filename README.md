@@ -1,45 +1,5 @@
-███╗   ██╗ ██████╗ ██████╗ ███████╗ ██████╗ ██████╗ ██████╗ ███████╗
-████╗  ██║██╔═══██╗██╔══██╗██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
-██╔██╗ ██║██║   ██║██║  ██║█████╗  ██║     ██║   ██║██████╔╝█████╗
-██║╚██╗██║██║   ██║██║  ██║██╔══╝  ██║     ██║   ██║██╔══██╗██╔══╝
-██║ ╚████║╚██████╔╝██████╔╝███████╗╚██████╗╚██████╔╝██║  ██║███████╗
-╚═╝  ╚═══╝ ╚═════╝ ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
+▄─░█ ░█▀▀▀█ ░█▀▀▄ ░█▀▀▀ ░█▀▀█ ░█▀▀▀█ ░█▀▀█ ░█▀▀▀
+░█░█░█ ░█──░█ ░█─░█ ░█▀▀▀ ░█─── ░█──░█ ░█▄▄▀ ░█▀▀▀
+░█──▀█ ░█▄▄▄█ ░█▄▄▀ ░█▄▄▄ ░█▄▄█ ░█▄▄▄█ ░█─░█ ░█▄▄▄
 
-                    Modern Knowledge Workspace Engine
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🚀 OVERVIEW
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-NODECORE is a next-generation knowledge management workspace
-inspired by Obsidian, VSCode, Linear and Notion.
-
-Built entirely with:
-
-▸ HTML5
-▸ CSS3
-▸ Vanilla JavaScript
-
-NODECORE combines markdown note-taking, graph visualization,
-wikilinks and a premium desktop-like UX into one powerful
-offline-first application.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✨ EXPERIENCE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-📝 Real-time Markdown Editing
-🔗 Smart Wikilinks & Backlinks
-🧠 Interactive Knowledge Graph
-⚡ VSCode-style Command Palette
-🎨 Premium Glassmorphism Interface
-🌙 Dark Mode Experience
-💾 Offline-first Storage
-📱 Fully Responsive Layout
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔥 NODECORE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Fast. Minimal. Powerful.
-Built for thinkers, developers and creators.
+               MODERN KNOWLEDGE WORKSPACE ENGINE
