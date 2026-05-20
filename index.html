@@ -203,7 +203,7 @@
             font-size: 22px;
             font-weight: 600;
             outline: none;
-            width: 60%;
+            width: 40%;
         }
 
         .view-actions { display: flex; gap: 8px; }
@@ -217,11 +217,24 @@
             font-size: 13px;
             font-weight: 500;
             transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
         .tab-btn.active, .tab-btn:hover {
             background: var(--text-primary);
             color: var(--bg-base);
             border-color: var(--text-primary);
+        }
+        #btn-merge-note:hover {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+        #btn-print-pdf:hover {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border-color: var(--accent-secondary);
         }
 
         /* Editor container & views */
@@ -262,6 +275,38 @@
             background: #09090b;
             z-index: 2;
         }
+
+        /* Modale de fusion de Nodes */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.75);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(4px);
+        }
+        .modal-content {
+            padding: 25px;
+            border-radius: var(--radius-lg);
+            width: 420px;
+            display: flex; flex-direction: column; gap: 16px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+        }
+        .modal-content h3 { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+        .modal-select {
+            background: var(--bg-base);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 12px;
+            border-radius: var(--radius-md);
+            outline: none;
+            font-family: var(--font-main);
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 5px; }
+        .btn-confirm { background: var(--accent-primary); border-color: var(--accent-primary); color: white; }
+        .btn-confirm:hover { background: #7c3aed; }
 
         /* Markdown Styling inside Preview */
         .preview-pane h1, .preview-pane h2, .preview-pane h3 {
@@ -324,6 +369,57 @@
         .hidden { display: none !important; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+        /* ==========================================================================
+           FEUILLE DE STYLE D'IMPRESSION ET DE MISE EN PAGE PDF NATIVE
+           ========================================================================== */
+        @media print {
+            body, html {
+                background: #ffffff !important;
+                color: #000000 !important;
+                height: auto;
+                overflow: visible;
+            }
+            /* Masquage de tout l'environnement logiciel interactif */
+            .sidebar, 
+            .workspace-header, 
+            .editor-pane, 
+            .modal-overlay, 
+            .graph-container,
+            #tags-container {
+                display: none !important;
+            }
+            .app-layout, .main-workspace, .workspace-body, .editor-container {
+                display: block !important;
+                height: auto !important;
+                width: 100% !important;
+                background: none !important;
+                position: static !important;
+            }
+            /* Mise en valeur unique du panneau de lecture */
+            .preview-pane {
+                display: block !important;
+                width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
+                padding: 0mm !important;
+                margin: 0mm !important;
+                color: #000000 !important;
+            }
+            .preview-pane h1, .preview-pane h2, .preview-pane h3, .preview-pane p {
+                color: #000000 !important;
+            }
+            .preview-pane h1 {
+                border-bottom: 2px solid #000000 !important;
+            }
+            .wikilink {
+                background: none !important;
+                color: #000000 !important;
+                text-decoration: underline !important;
+                border: none !important;
+                padding: 0 !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -360,6 +456,8 @@
             <header class="workspace-header glass-panel">
                 <input type="text" id="note-title" class="title-input" placeholder="Sans titre">
                 <div class="view-actions">
+                    <button class="tab-btn" id="btn-print-pdf" title="Exporter en PDF / Imprimer"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                    <button class="tab-btn" id="btn-merge-note" title="Fusionner des nodes"><i class="fa-solid fa-code-merge"></i> Fusionner</button>
                     <button class="tab-btn active" id="btn-mode-editor"><i class="fa-solid fa-pen-nib"></i> Éditeur</button>
                     <button class="tab-btn" id="btn-mode-graph"><i class="fa-solid fa-diagram-project"></i> Graphe</button>
                 </div>
@@ -388,6 +486,18 @@
 
     </div>
 
+    <div id="merge-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel">
+            <h3><i class="fa-solid fa-code-merge" style="color:var(--accent-primary)"></i> Absorber une autre note</h3>
+            <p style="font-size: 13px; color: var(--text-secondary);">Le contenu et les tags de la note choisie seront fusionnés à la suite de votre note actuelle. La note choisie sera ensuite supprimée.</p>
+            <select id="merge-target-select" class="modal-select"></select>
+            <div class="modal-actions">
+                <button class="btn-action" id="btn-cancel-merge">Annuler</button>
+                <button class="btn-action btn-confirm" id="btn-confirm-merge">Fusionner les données</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // --- ÉTAT GLOBAL DE L'APPLICATION ---
         let state = {
@@ -403,7 +513,6 @@
                 if (data) {
                     state.notes = JSON.parse(data);
                 } else {
-                    // Données de démonstration initiales
                     state.notes = [
                         { id: '1', title: 'Bienvenue', content: '# Bienvenue dans NodeCore\n\nVoici ton espace de pensée interconnecté.\n\nRegarde ton graphe évoluer grâce aux liens dynamiques comme ceci : [[Réseau de Pensées]].\n\nTu peux sauvegarder l\'intégralité de tes données dans un fichier physique grâce au menu de synchronisation en bas à gauche.\n\n#systeme #nodecore', tags: ['#systeme', '#nodecore'] },
                         { id: '2', title: 'Réseau de Pensées', content: '# Réseau de Pensées\n\nLes wikilinks permettent de créer des ponts entre les fichiers.\n\nRetourner vers [[Bienvenue]].', tags: [] }
@@ -415,14 +524,13 @@
                 localStorage.setItem('nodecore_vault_notes', JSON.stringify(state.notes));
             },
             exportToUyt() {
-                // Création du fichier physique .uyt basé sur l'état JSON
                 const dataStr = JSON.stringify(state.notes, null, 2);
                 const blob = new Blob([dataStr], { type: "application/json" });
                 const url = URL.createObjectURL(blob);
                 
                 const link = document.createElement('a');
                 link.href = url;
-                link.download = "nodecore.uyt"; // Nom forcé sous le format .uyt
+                link.download = "nodecore.uyt";
                 link.click();
                 
                 URL.revokeObjectURL(url);
@@ -492,9 +600,15 @@
                     }
                 });
 
-                // Toggle des Modes de Vue
+                // Actionneurs d'interface
                 document.getElementById('btn-mode-editor').addEventListener('click', () => UI.switchView('editor'));
                 document.getElementById('btn-mode-graph').addEventListener('click', () => UI.switchView('graph'));
+                document.getElementById('btn-merge-note').addEventListener('click', () => UI.toggleMergeModal(true));
+                document.getElementById('btn-cancel-merge').addEventListener('click', () => UI.toggleMergeModal(false));
+                document.getElementById('btn-confirm-merge').addEventListener('click', () => UI.executeNodeMerge());
+                
+                // Déclencheur Impression / PDF
+                document.getElementById('btn-print-pdf').addEventListener('click', () => window.print());
 
                 // Intercepter les clics sur les Wikilinks générés dans la Preview
                 document.getElementById('markdown-preview').addEventListener('click', (e) => {
@@ -504,7 +618,6 @@
                     }
                 });
 
-                // Premier affichage
                 if (state.notes.length > 0) {
                     UI.setActiveNote(state.notes[0].id);
                 } else {
@@ -653,6 +766,50 @@
                     UI.setActiveNote(targetNote.id);
                 } else {
                     UI.createNewNote(title);
+                }
+            },
+
+            toggleMergeModal(show) {
+                const modal = document.getElementById('merge-modal');
+                const select = document.getElementById('merge-target-select');
+                
+                if (show) {
+                    select.innerHTML = '';
+                    const eligibleNotes = state.notes.filter(n => n.id !== state.activeNoteId);
+                    
+                    if (eligibleNotes.length === 0) {
+                        alert("Vous devez avoir au moins une autre note dans votre coffre pour pouvoir effectuer une fusion.");
+                        return;
+                    }
+
+                    eligibleNotes.forEach(note => {
+                        const opt = document.createElement('option');
+                        opt.value = note.id;
+                        opt.innerText = note.title || "Sans titre";
+                        select.appendChild(opt);
+                    });
+                    modal.classList.remove('hidden');
+                } else {
+                    modal.classList.add('hidden');
+                }
+            },
+
+            executeNodeMerge() {
+                const targetSelect = document.getElementById('merge-target-select');
+                const targetNoteId = targetSelect.value;
+                
+                const activeNote = state.notes.find(n => n.id === state.activeNoteId);
+                const targetNote = state.notes.find(n => n.id === targetNoteId);
+
+                if (activeNote && targetNote) {
+                    activeNote.content += `\n\n---\n### <i class="fa-solid fa-code-merge"></i> Contenu fusionné depuis *${targetNote.title}*\n\n${targetNote.content}`;
+                    activeNote.tags = [...new Set([...activeNote.tags, ...targetNote.tags])];
+                    state.notes = state.notes.filter(n => n.id !== targetNoteId);
+                    
+                    Storage.save();
+                    UI.toggleMergeModal(false);
+                    UI.setActiveNote(activeNote.id);
+                    UI.renderNoteList();
                 }
             },
 
