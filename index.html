@@ -371,33 +371,29 @@
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
 
         /* ==========================================================================
-           FEUILLE DE STYLE D'IMPRESSION ET DE MISE EN PAGE PDF NATIVE
+           FEUILLE DE STYLE D'IMPRESSION ET DE MISE EN PAGE PDF DYNAMIQUE
            ========================================================================== */
         @media print {
             body, html {
                 background: #ffffff !important;
                 color: #000000 !important;
-                height: auto;
-                overflow: visible;
+                height: 100% !important;
+                overflow: visible !important;
             }
-            /* Masquage de tout l'environnement logiciel interactif */
-            .sidebar, 
-            .workspace-header, 
-            .editor-pane, 
-            .modal-overlay, 
-            .graph-container,
-            #tags-container {
+            /* Dissimulation globale de l'interface applicative */
+            .sidebar, .workspace-header, .modal-overlay, .editor-pane, #tags-container, #backlinks-container {
                 display: none !important;
             }
-            .app-layout, .main-workspace, .workspace-body, .editor-container {
+            .app-layout, .main-workspace, .workspace-body {
                 display: block !important;
-                height: auto !important;
+                height: 100% !important;
                 width: 100% !important;
                 background: none !important;
                 position: static !important;
             }
-            /* Mise en valeur unique du panneau de lecture */
-            .preview-pane {
+
+            /* --- CAS 1 : IMPRESSION MODE ÉDITEUR (TEXTE SEUL) --- */
+            body.view-editor-active .preview-pane {
                 display: block !important;
                 width: 100% !important;
                 height: auto !important;
@@ -406,12 +402,51 @@
                 margin: 0mm !important;
                 color: #000000 !important;
             }
-            .preview-pane h1, .preview-pane h2, .preview-pane h3, .preview-pane p {
+            body.view-editor-active .preview-pane h1, 
+            body.view-editor-active .preview-pane h2, 
+            body.view-editor-active .preview-pane h3, 
+            body.view-editor-active .preview-pane p {
                 color: #000000 !important;
             }
-            .preview-pane h1 {
+            body.view-editor-active .preview-pane h1 {
                 border-bottom: 2px solid #000000 !important;
             }
+            body.view-editor-active .graph-container {
+                display: none !important;
+            }
+
+            /* --- CAS 2 : IMPRESSION MODE GRAPHE (INVERSION INTELLIGENTE) --- */
+            body.view-graph-active .editor-container {
+                display: none !important;
+            }
+            body.view-graph-active .graph-container {
+                display: block !important;
+                position: fixed !important;
+                top: 0; left: 0; 
+                width: 100vw !important; height: 100vh !important;
+                background: #ffffff !important;
+                z-index: 9999;
+            }
+            body.view-graph-active .graph-container svg {
+                background: #ffffff !important;
+                width: 100vw !important;
+                height: 100vh !important;
+            }
+            body.view-graph-active .graph-container line {
+                stroke: #444444 !important;
+                stroke-opacity: 0.6 !important;
+                stroke-width: 1.5px !important;
+            }
+            body.view-graph-active .graph-container text {
+                fill: #000000 !important;
+                font-weight: 600 !important;
+                text-shadow: 0 1px 2px #ffffff !important;
+            }
+            body.view-graph-active .graph-container circle {
+                stroke: #111111 !important;
+                stroke-width: 2px !important;
+            }
+
             .wikilink {
                 background: none !important;
                 color: #000000 !important;
@@ -607,7 +642,7 @@
                 document.getElementById('btn-cancel-merge').addEventListener('click', () => UI.toggleMergeModal(false));
                 document.getElementById('btn-confirm-merge').addEventListener('click', () => UI.executeNodeMerge());
                 
-                // Déclencheur Impression / PDF
+                // Déclencheur Impression / PDF dynamique
                 document.getElementById('btn-print-pdf').addEventListener('click', () => window.print());
 
                 // Intercepter les clics sur les Wikilinks générés dans la Preview
@@ -623,6 +658,9 @@
                 } else {
                     UI.createNewNote();
                 }
+                
+                // Initialise la vue par défaut
+                UI.switchView('editor');
                 UI.renderNoteList();
             },
 
@@ -824,11 +862,19 @@
                     graphPane.classList.add('hidden');
                     btnEditor.classList.add('active');
                     btnGraph.classList.remove('active');
+                    
+                    // Modifie les classes du body pour le moteur d'impression CSS
+                    document.body.classList.remove('view-graph-active');
+                    document.body.classList.add('view-editor-active');
                 } else {
                     editorPane.classList.add('hidden');
                     graphPane.classList.remove('hidden');
                     btnEditor.classList.remove('active');
                     btnGraph.classList.add('active');
+                    
+                    // Modifie les classes du body pour le moteur d'impression CSS
+                    document.body.classList.remove('view-editor-active');
+                    document.body.classList.add('view-graph-active');
                     Graph.render();
                 }
             }
